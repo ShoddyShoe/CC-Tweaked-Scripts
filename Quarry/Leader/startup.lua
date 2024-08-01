@@ -211,11 +211,11 @@ rednet.open('left')
 turtle.digUp()
 for i = 1, turtles, 1 do
     turtle.dig()
-    sleep(0.5)
+    sleep(0.25)
     if turtle.inspect() then
         repeat
             turtle.dig()
-            sleep(0.5)
+            sleep(0.25)
         until not turtle.inspect()
     end
     turtle.forward()
