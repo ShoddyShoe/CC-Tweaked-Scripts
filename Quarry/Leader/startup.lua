@@ -133,7 +133,7 @@ if choice == "3" then
     for i = 1, turtles, 1 do
         turtle.select(i)
         turtle.place()
-        sleep(1)
+        sleep(0.5)
         local child = peripheral.wrap('front')
         turtle.select(16)
         turtle.drop(coalPerTurt)

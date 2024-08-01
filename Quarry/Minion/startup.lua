@@ -1,13 +1,15 @@
 rednet.open('left')
-local message, update
-rednet.send(4, "ready!")
-id, message, update = rednet.receive()
-if update == "Update!" then
-    shell.execute("update", message)
+leader = peripheral.wrap('back')
+leaderID = leader.getID()
+local message, command
+rednet.send(leaderID, "ready!")
+id, command = rednet.receive()
+if command == "Update!" then
+    shell.execute("update", id)
 end
-if update == "Fuel!" then
+if command == "Fuel!" then
     turtle.refuel(64)
-    rednet.send(4, "Fueled!")
+    rednet.send(leaderID, "Fueled!")
     os.shutdown()
 end
 dist = message:sub(1,string.find(message,"|")-1)
@@ -78,4 +80,4 @@ for i = 1, 16, 1 do
     turtle.select(i)
     turtle.drop()
 end
-rednet.send(4, "Done!")
+rednet.send(leaderID, "Done!")
