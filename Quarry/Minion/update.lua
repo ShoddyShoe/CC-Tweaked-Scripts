@@ -1,0 +1,5 @@
+fs.delete("startup.lua")
+shell.execute("pastebin", "get", ..., "startup.lua")
+rednet.open("left")
+rednet.send(4, "Updated!")
+os.shutdown()
