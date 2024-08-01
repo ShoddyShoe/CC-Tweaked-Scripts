@@ -3,9 +3,9 @@ leader = peripheral.wrap('back')
 leaderID = leader.getID()
 local message, command
 rednet.send(leaderID, "ready!")
-id, command = rednet.receive()
+id, command, message = rednet.receive()
 if command == "Update!" then
-    shell.execute("update", id)
+    shell.execute("update", tostring(id))
 end
 if command == "Fuel!" then
     turtle.refuel(64)

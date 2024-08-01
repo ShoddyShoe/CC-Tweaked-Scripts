@@ -1,5 +1,5 @@
 fs.delete("startup.lua")
 shell.execute("wget", "https://raw.githubusercontent.com/ShoddyShoe/CC-Tweaked-Scripts/main/Quarry/Minion/startup.lua")
 rednet.open("left")
-rednet.send(..., "Updated!")
+rednet.send(tonumber(...), "Updated!")
 os.shutdown()

@@ -139,7 +139,7 @@ if choice == "3" then
         turtle.drop(coalPerTurt)
         child.turnOn()
         rednet.receive()
-        rednet.send(child.getID(), "", "Fuel!")
+        rednet.send(child.getID(), "Fuel!")
         rednet.receive()
         turtle.dig()
     end
@@ -156,15 +156,13 @@ term.setCursorPos(1,1)
 if choice == "2" then
     print("Are You Sure You Want To Update The Children? (y/n)")
     if read():lower() == "y" then
-        print("Alright!\nPlease Input Update Code!")
-        update = read()
         term.clear()
         term.setCursorPos(1,1)
         for i = 10, 0, -1 do
             print("TURN TURTLE OFF TO STOP UPDATE: ", i)
             sleep(1)
         end    
-        shell.execute("update", update, tostring(turtles))
+        shell.execute("update", tostring(turtles))
         shell.exit()
         sleep(1)
     end
@@ -258,7 +256,7 @@ for i = 1, turtles, 1 do
     child = peripheral.wrap("right")
     child.turnOn()
     rednet.receive()
-    rednet.send(child.getID(),len.."|"..height, "false")
+    rednet.send(child.getID(), "false", len.."|"..height)
     if i ~= turtles then
         for i = 1, 2, 1 do
             turtle.dig()
