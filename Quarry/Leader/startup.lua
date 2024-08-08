@@ -148,7 +148,7 @@ Swap = false
 if choice == "1" then
     ::orientLoop::
     Clear()
-    write("Make sure the turtle is placed in this orientation:\n" .. ("##########\n"):rep(4) .. Swap and "#########^" or "^#########" .. "\n\n^ = Turtle\n# = Blocks To Be Mined\n\nIs it in position? (y/n/swap): ")
+    write("Make sure the turtle is placed in this orientation:\n" .. ("##########\n"):rep(4) .. Swap == true and "#########^" or "^#########" .. "\n\n^ = Turtle\n# = Blocks To Be Mined\n\nIs it in position? (y/n/swap): ")
     local confirm = read()
     if confirm:lower() == "swap" then 
         Swap = not Swap and true or false
