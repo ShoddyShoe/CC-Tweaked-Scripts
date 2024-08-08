@@ -147,7 +147,7 @@ end
 Swap = false
 if choice == "1" then
     ::orientLoop::
-    clear()
+    Clear()
     write("Make sure the turtle is placed in this orientation:\n" .. ("##########\n"):rep(4) .. Swap and "#########^" or "^#########" .. "\n\n^ = Turtle\n# = Blocks To Be Mined\n\nIs it in position? (y/n/swap): ")
     local confirm = read()
     if confirm:lower() == "swap" then 
@@ -161,15 +161,13 @@ repeat sleep(0.2) until turtle.getItemDetail(16) and turtle.getItemDetail(16)["n
 print("Thank You!")
 sleep(1)
 function dimensions()
-    term.clear()
-    term.setCursorPos(1,1)
+    Clear()
     print("How far would you like each turtle to mine? (Blocks)")
     len = read()
     print("\nHow high would you like each turtle to mine? (Blocks)")
     height = read()
     print("\nThanks!")
-    term.clear()
-    term.setCursorPos(1,1)
+    Clear()
     stacks = math.ceil(len*height*turtles*3/64)
     if stacks>45 then 
         print("WARNING: Estimated block count is greater than ".. tostring(stacks > 54 and "all" or "5/6") .." storage! (".. tostring(stacks < 10000 and stacks or ">999") .." Stacks)\n\n".. tostring(stacks > 54 and "The chest cannot store the estimated number of items and will overflow and items will be dropped on the ground!" or "If you are in an area with a high variety of blocks, some blocks/items may not fit in the chest!").."\n\nDimensions:\nLength: "..len.."\nHeight: "..height.."\nDepth: "..turtles*3 .." (3 Blocks Per Turtle)\n")
