@@ -4,13 +4,18 @@ leaderID = leader.getID()
 local message, command
 rednet.send(leaderID, "ready!")
 id, command, message = rednet.receive()
-if command == "Update!" then
-    shell.execute("update", tostring(id))
-end
-if command == "Fuel!" then
+if command == "Update!" then shell.execute("update", tostring(id))
+elseif command == "Fuel!" then
     turtle.refuel(64)
     rednet.send(leaderID, "Fueled!")
     os.shutdown()
+elseif command == "Swap!" then Swap = true end
+
+local function breakFalling()
+    repeat
+        turtle.dig()
+        sleep(0.5)
+    until not turtle.inspect()
 end
 dist = message:sub(1,string.find(message,"|")-1)
 height = message:sub(string.find(message,"|")+1)
@@ -30,37 +35,20 @@ for i = 1, dist, 1 do
         turtle.dig()
         turtle.down()
     end
-    repeat
-        turtle.dig()
-        sleep(0.5)
-    until not turtle.inspect()
-    
+    breakFalling()
     turtle.turnLeft()
     turtle.turnLeft()
-    if turtle.inspect() then
-        repeat
-            turtle.dig()
-            sleep(0.5)
-        until not turtle.inspect()
-    end
+    if turtle.inspect() then breakFalling() end
     if i ~= tonumber(dist) then
         turtle.turnRight()
         turtle.dig()
         sleep(0.5)
-        if turtle.inspect() then
-            repeat
-                turtle.dig()
-                sleep(0.5)
-            until not turtle.inspect()
-        end
+        if turtle.inspect() then breakFalling() end
         turtle.forward()
     end
 end
 turtle.turnLeft()
-for i = dist, 2, -1
-do
-    turtle.forward()
-end
+for i = dist, 2, -1 do turtle.forward() end
 i, j = turtle.inspect()
 if i and j['tags']['computercraft:turtle'] then
     repeat
@@ -71,15 +59,13 @@ if i and j['tags']['computercraft:turtle'] then
 elseif i and not j['tags']['computercraft:turtle'] and j['name'] ~= 'minecraft:chest' then
     turtle.dig()
     turtle.forward()
-else
-    turtle.forward()
-end  
-turtle.turnLeft()
+else turtle.forward() end  
+if Swap then turtle.turnRight() else turtle.turnLeft()
 repeat 
     turtle.forward()
     i, j = turtle.inspect() 
 until i and j['name'] == "computercraft:turtle_advanced"
-turtle.turnRight()
+if Swap then turtle.turnLeft() else turtle.turnRight()
 for i = 1, 16, 1 do
     turtle.select(i)
     turtle.drop()

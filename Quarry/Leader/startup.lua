@@ -1,14 +1,14 @@
-term.clear()
-term.setCursorPos(1,1)
+function Clear()
+    term.clear()
+    term.setCursorPos(1,1)
+end
+Clear()
 turtle.select(1)
 if turtle.getFuelLevel() < 1000 then
     repeat 
         sleep(0.5)
-        term.clear()
-        term.setCursorPos(1,1)
-        print("Turtle Is Hungry! D:")
-        print("Fuel: "..turtle.getFuelLevel().."/1000")
-        print("\n(Turtle likes to eat all wooden things, coal, and especially lava!)")
+        Clear()
+        print("Turtle Is Hungry! D:\nFuel: "..turtle.getFuelLevel().."/1000\n(Turtle likes to eat all wooden things, coal, and especially lava!)")
         if turtle.getItemCount() > 0 then
             local ok, err = turtle.refuel()
             if not ok then print("That's not a valid fuel source!")
@@ -16,24 +16,19 @@ if turtle.getFuelLevel() < 1000 then
     until turtle.getFuelLevel() > 999
 end 
 repeat
-term.clear()
-term.setCursorPos(1,1)
-write("Welcome to Shoddy's Mining Utility!\n\nFunctions:\n1: Start Quarry\n2: Update Children\n3: Feed Children\n4: Remote Control\n\nPick a function! (1/2/3/4):")
-choice = read()
+    Clear()
+    write("Welcome to Shoddy's Mining Utility!\n\nFunctions:\n1: Start Quarry\n2: Update Children\n3: Feed Children\n4: Remote Control\n\nPick a function! (1/2/3/4):")
+    choice = read()
 until choice == "1" or choice == "2" or choice == "3" or choice == "4"
-term.clear()
-term.setCursorPos(1,1)
+Clear()
 
 --Remote Control
 if choice == "4" then
     rednet.open('left')
     print("Waiting for remote to pair...")
-    repeat
-        id, remoteID, pair = rednet.receive()
-    until pair == "Remote Pair!"
+    repeat id, remoteID, pair = rednet.receive() until pair == "Remote Pair!"
     rednet.send(remoteID, "Paired!")
-    term.clear()
-    term.setCursorPos(1,1)
+    Clear()
     repeat
         posX, posY = term.getCursorPos()
         term.setCursorPos(1,1)
@@ -41,43 +36,26 @@ if choice == "4" then
         term.setCursorPos(posX, posY)
         id, control = rednet.receive()
         print(control)
-        if control == "w" then turtle.forward()
-        elseif control == "s" then turtle.back()
-        elseif control == "space" then turtle.up()
-        elseif control == "leftShift" then turtle.down()
-        elseif control == "a" then turtle.turnLeft()
-        elseif control == "d" then turtle.turnRight()
-        elseif control == "tab" then turtle.dig()
-        end
-    until control == "backspace"    
+        local controls = {w = turtle.forward, s = turtle.back, space = turtle.up, leftShift = turtle.down, a = turtle.turnLeft, d = turtle.turnRight, tab = turtle.dig}
+        local action = controls[control]
+        if action then action() end
+    until control == "backspace"
     os.reboot()
 end
 --End of Remote Control
 
-term.clear()
-term.setCursorPos(1,1)
-
---Quarry Setup
-if choice == "1" then
-    print("Make sure the turtle is placed in this orientation:\n")
-    for i = 1, 4, 1 do print("##########") end
-    write("^#########\n\n^ = Turtle\n# = Blocks To Be Mined\n\nIs it in position? (y/n): ")
-    if read():lower() ~= "y" then os.reboot() end
-end
---End of Quarry Setup
+Clear()
 
 --Turtle Check & Sort
 function turtSort()
-    term.clear()
-    term.setCursorPos(1,1)
+    Clear()
     print("Please add turtles to my inventory now.")
     print("Press enter when ready!")
     read()
     turtles = 0
     for i = 1, 16, 1 do
         if turtle.getItemCount(i) > 0 then
-            if turtle.getItemDetail(i)["name"] == "computercraft:turtle_normal" then
-                turtles = turtles + 1
+            if turtle.getItemDetail(i)["name"] == "computercraft:turtle_normal" then turtles = turtles + 1
             else
                 term.clear()
                 term.setCursorPos(1,1)
@@ -95,13 +73,11 @@ function turtSort()
     term.setCursorPos(1,1)
     print("Sorting Turtles...")
     repeat
-    rah = true
     for i = 1, 16, 1 do
         turtle.select(i)
-        if rah == true and i == 16 then sorted = true end
+        if i == 16 then sorted = true end
         if turtle.getItemCount(i) > 0 then
             if tonumber(turtle.getItemDetail(i, true)["displayName"]) ~= i then
-                rah = false
                 if turtle.getItemCount(tonumber(turtle.getItemDetail(i, true)["displayName"])) then
                     turtle.transferTo(tonumber(turtle.getItemDetail(i, true)["displayName"]), 1) end
                 for j = 16, 1, -1 do
@@ -115,18 +91,17 @@ end
 turtSort()
 --End of Turtle Sorter
 
-term.clear()
-term.setCursorPos(1,1)
+Clear()
 
 --Turtle Fueling
 if choice == "3" then
     repeat
     term.clear()
     term.setCursorPos(1,1)
-    print("\nPlease place Coal in the 16th (last) slot.\n\nCoal will be distributed equally, make sure you have at least 1 coal for each turtle!\n\nPress Enter when fuel has been added to Turtle inventory.")
+    print("\nPlease place Charcoal/Coal in the 16th (last) slot.\n\nCoal will be distributed equally, make sure you have at least 1 coal for each turtle!\n\nPress Enter when fuel has been added to Turtle inventory.")
     read()
     str = turtle.getItemDetail(16)['name']
-    until turtle.getItemDetail(16) and (str:sub(-6) == "_block" and str:sub(1, -7) or str) == "minecraft:coal" and turtle.getItemCount(16) > tonumber(turtles)-1
+    until turtle.getItemDetail(16) and (str == "minecraft:coal" or str == "minecraft:charcoal" or str == "minecraft:coal_block") and turtle.getItemCount(16) > tonumber(turtles)-1
     rednet.open('left')
     turtle.dig()
     coalPerTurt = math.floor(turtle.getItemCount(16)/tonumber(turtles))
@@ -149,8 +124,7 @@ if choice == "3" then
 end
 --End of Child Ration Program
 
-term.clear()
-term.setCursorPos(1,1)
+Clear()
 
 --Update Program
 if choice == "2" then
@@ -169,6 +143,18 @@ if choice == "2" then
 end
 --End of Child Update System
 
+--Mining Program Setup
+Swap = false
+if choice == "1" then
+    ::orientLoop::
+    clear()
+    write("Make sure the turtle is placed in this orientation:\n" .. ("##########\n"):rep(4) .. Swap and "#########^" or "^#########" .. "\n\n^ = Turtle\n# = Blocks To Be Mined\n\nIs it in position? (y/n/swap): ")
+    local confirm = read()
+    if confirm:lower() == "swap" then 
+        Swap = not Swap and true or false
+        goto orientLoop
+    elseif confirm:lower() ~= "y" then os.reboot() end
+end
 term.setCursorPos(1,1)
 print("Please add 2 Chests to Slot 16 (Bottom Right)")
 repeat sleep(0.2) until turtle.getItemDetail(16) and turtle.getItemDetail(16)["name"] == "minecraft:chest" and turtle.getItemCount(16) == 2
@@ -193,8 +179,7 @@ function dimensions()
 end 
 dimensions()
 sleep(1)
-term.clear()
-term.setCursorPos(1,1)
+Clear()
 print("Starting Mining Program...\n")
 sleep(1)
 print("Please stand back! Starting In...")
@@ -203,70 +188,56 @@ for i = 3, 1, -1 do
     print(i)
     sleep(1)
 end
-term.clear()
-term.setCursorPos(1,1)
+local function breakFalling()
+    repeat
+        turtle.dig()
+        sleep(0.5)
+    until not turtle.inspect() 
+end
+--End of Mining Program Setup
+
+Clear()
 
 --Mining Program
 rednet.open('left')
 turtle.digUp()
 for i = 1, turtles, 1 do
-    turtle.dig()
-    sleep(0.25)
-    if turtle.inspect() then
-        repeat
-            turtle.dig()
-            sleep(0.25)
-        until not turtle.inspect()
-    end
+    breakFalling()
     turtle.forward()
     turtle.digUp()
     if i == 1 then
-        turtle.turnLeft()
+        if swap then turtle.turnRight() else turtle.turnLeft()
         turtle.dig()
         turtle.forward()
         turtle.digUp()
         turtle.back()
         turtle.select(16)
         turtle.place()
-        turtle.turnRight()
+        if swap then turtle.turnLeft() else turtle.turnRight()
         turtle.dig()
         turtle.forward()
         turtle.digUp()
-        turtle.turnLeft()
+        if swap then turtle.turnRight() else turtle.turnLeft()
         turtle.dig()
         turtle.forward()
         turtle.digUp()
         turtle.back()
         turtle.place()
-        turtle.turnRight()
+        if swap then turtle.turnLeft() else turtle.turnRight()
         turtle.back()
     end
-    turtle.turnRight()
-    turtle.dig()
-    sleep(0.5)
-    if turtle.inspect() then
-        repeat
-            turtle.dig()
-            sleep(0.5)
-        until not turtle.inspect() 
-    end
+    if swap then turtle.turnLeft() else turtle.turnRight()
+    breakFalling()
     turtle.select(i)
     turtle.place()
-    turtle.turnLeft()
-    child = peripheral.wrap("right")
+    if swap then turtle.turnRight() else turtle.turnLeft()
+    child = swap and peripheral.wrap("left") or peripheral.wrap("right")
     child.turnOn()
     rednet.receive()
-    rednet.send(child.getID(), "false", len.."|"..height)
+    rednet.send(child.getID(), swap and "Swap!" or "false", len.."|"..height)
     if i ~= turtles then
         for i = 1, 2, 1 do
-            turtle.dig()
-            sleep(0.5)
-            if turtle.inspect() then
-                repeat
-                    turtle.dig()
-                    sleep(0.5)
-                until not turtle.inspect()
-            end
+            breakFalling()
             turtle.forward()
             turtle.digUp()
         end
@@ -274,40 +245,33 @@ for i = 1, turtles, 1 do
         turtle.dig()
         turtle.forward()
         turtle.digUp()
-        turtle.back()
-        turtle.turnRight()
-        turtle.turnRight()
         turtle.up()
-        for i = 1, turtles, 1 do
-            if i == turtles then
-                turtle.forward()
-            else
-                turtle.forward()
-                turtle.forward()
-                turtle.forward()
-            end
+        turtle.back()
+        turtle.back()
+        for i = 0, turtles, 1 do
+            turtle.back()
+            turtle.back()
+            turtle.back()
         end
-        turtle.turnLeft()
-        turtle.turnLeft()
         turtle.down()
     end
 end
-turtle.turnLeft()
+if swap then turtle.turnRight() else turtle.turnLeft()
 turtle.dig()
 turtle.forward()
 turtle.digUp()
-turtle.turnRight()
+if swap then turtle.turnLeft() else turtle.turnRight()
 for i = 1, 16, 1 do
     turtle.select(i)
     turtle.drop()
 end
-turtle.turnRight()
+if swap then turtle.turnLeft() else turtle.turnRight()
 turtle.forward()
-turtle.turnLeft()
+if swap then turtle.turnRight() else turtle.turnLeft()
 turtle.select(1)
 for i = turtles, 1, -1 do
     rednet.receive()
     turtle.dig()
 end
-turtle.turnRight()
+if swap then turtle.turnLeft() else turtle.turnRight()
 turtle.back()
