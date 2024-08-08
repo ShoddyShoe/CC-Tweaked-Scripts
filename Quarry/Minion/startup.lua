@@ -60,12 +60,12 @@ elseif i and not j['tags']['computercraft:turtle'] and j['name'] ~= 'minecraft:c
     turtle.dig()
     turtle.forward()
 else turtle.forward() end  
-if Swap then turtle.turnRight() else turtle.turnLeft()
+if Swap then turtle.turnRight() else turtle.turnLeft() end
 repeat 
     turtle.forward()
     i, j = turtle.inspect() 
 until i and j['name'] == "computercraft:turtle_advanced"
-if Swap then turtle.turnLeft() else turtle.turnRight()
+if Swap then turtle.turnLeft() else turtle.turnRight() end
 for i = 1, 16, 1 do
     turtle.select(i)
     turtle.drop()

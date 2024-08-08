@@ -206,31 +206,31 @@ for i = 1, turtles, 1 do
     turtle.forward()
     turtle.digUp()
     if i == 1 then
-        if swap then turtle.turnRight() else turtle.turnLeft()
+        if swap then turtle.turnRight() else turtle.turnLeft() end
         turtle.dig()
         turtle.forward()
         turtle.digUp()
         turtle.back()
         turtle.select(16)
         turtle.place()
-        if swap then turtle.turnLeft() else turtle.turnRight()
+        if swap then turtle.turnLeft() else turtle.turnRight() end
         turtle.dig()
         turtle.forward()
         turtle.digUp()
-        if swap then turtle.turnRight() else turtle.turnLeft()
+        if swap then turtle.turnRight() else turtle.turnLeft() end
         turtle.dig()
         turtle.forward()
         turtle.digUp()
         turtle.back()
         turtle.place()
-        if swap then turtle.turnLeft() else turtle.turnRight()
+        if swap then turtle.turnLeft() else turtle.turnRight() end
         turtle.back()
     end
-    if swap then turtle.turnLeft() else turtle.turnRight()
+    if swap then turtle.turnLeft() else turtle.turnRight() end
     breakFalling()
     turtle.select(i)
     turtle.place()
-    if swap then turtle.turnRight() else turtle.turnLeft()
+    if swap then turtle.turnRight() else turtle.turnLeft() end
     child = swap and peripheral.wrap("left") or peripheral.wrap("right")
     child.turnOn()
     rednet.receive()
@@ -256,22 +256,22 @@ for i = 1, turtles, 1 do
         turtle.down()
     end
 end
-if swap then turtle.turnRight() else turtle.turnLeft()
+if swap then turtle.turnRight() else turtle.turnLeft() end
 turtle.dig()
 turtle.forward()
 turtle.digUp()
-if swap then turtle.turnLeft() else turtle.turnRight()
+if swap then turtle.turnLeft() else turtle.turnRight() end
 for i = 1, 16, 1 do
     turtle.select(i)
     turtle.drop()
 end
-if swap then turtle.turnLeft() else turtle.turnRight()
+if swap then turtle.turnLeft() else turtle.turnRight() end
 turtle.forward()
-if swap then turtle.turnRight() else turtle.turnLeft()
+if swap then turtle.turnRight() else turtle.turnLeft() end
 turtle.select(1)
 for i = turtles, 1, -1 do
     rednet.receive()
     turtle.dig()
 end
-if swap then turtle.turnLeft() else turtle.turnRight()
+if swap then turtle.turnLeft() else turtle.turnRight() end
 turtle.back()
