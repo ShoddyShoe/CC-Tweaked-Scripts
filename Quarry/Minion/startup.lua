@@ -30,7 +30,11 @@ for i = 1, dist, 1 do
         turtle.dig()
         turtle.down()
     end
-    turtle.dig()
+    repeat
+        turtle.dig()
+        sleep(0.5)
+    until not turtle.inspect()
+    
     turtle.turnLeft()
     turtle.turnLeft()
     if turtle.inspect() then
