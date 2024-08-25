@@ -67,14 +67,26 @@ while true do
     if username == authPlayer and uuid == authPlayerUUID and isHidden then
         if message == "reboot" then os.reboot() end
 
-        if message == "itemList" or string.find(message, "withdraw ") then
+        if message == "itemList" or string.find(message, "withdraw ") or string.find(message, "deposit ") then
             local aggregated_items = {}
-            for slot, item in pairs(barrel.list()) do
-                if aggregated_items[item.name] then
-                    aggregated_items[item.name].count = aggregated_items[item.name].count + item.count
-                    table.insert(aggregated_items[item.name].slots, slot)
-                else
-                    aggregated_items[item.name] = {count = item.count, slots = {slot}}
+            if message == "itemList" or string.find(message, "withdraw ") then
+                for slot, item in pairs(barrel.list()) do
+                    if aggregated_items[item.name] then
+                        aggregated_items[item.name].count = aggregated_items[item.name].count + item.count
+                        table.insert(aggregated_items[item.name].slots, slot)
+                    else
+                        aggregated_items[item.name] = {count = item.count, slots = {slot}}
+                    end
+                end
+            else 
+                for _, item in pairs(inventory.getItems()) do
+                    item.slot = item.slot + 1
+                    if aggregated_items[item.name] then
+                        aggregated_items[item.name].count = aggregated_items[item.name].count + item.count
+                        table.insert(aggregated_items[item.name].slots, item.slot)
+                    else
+                        aggregated_items[item.name] = {count = item.count, slots = {item.slot}}
+                    end
                 end
             end
 
@@ -94,33 +106,39 @@ while true do
                 chatbox.sendFormattedMessageToPlayer(textutils.serializeJSON(messages), authPlayer, "&b=( Vault )=", "--", "&b")
             end
 
-            if string.find(message, "withdraw ") then
-                local item, itemSlot = string.match(message, "^withdraw ([^|]*)|(.*)")
+            if string.find(message, "withdraw ") or string.find(message, "deposit ") then
+                local item, itemSlot
+                if string.find(message, "withdraw") then item, itemSlot = string.match(message, "^withdraw ([^|]*)|(.*)")
+                else item, itemSlot = string.match(message, "^deposit ([^|]*)|(.*)")
+                end
                 if item and itemSlot then
                     local slotsToProcess = expand_slots(itemSlot)
-                    if #slotsToProcess == 0 then
+                    if #slotsToProcess <= 0 then
                         chatbox.sendMessageToPlayer("Invalid slot range specified.", authPlayer, "&bVault", "<>")
                         goto reset
                     end
 
                     local SlotList = slotLists[item]
-                    local totalItemCount, ExtraSpace = 0, 0
+                    local totalItemCount, ExtraSpace, totalSlots = 0, 0, 0
                     for _, slot in ipairs(slotsToProcess) do
-                        local itemData = barrel.getItemDetail(slot)
+                        local itemData = (string.find(message, "withdraw ") and barrel.getItemDetail(slot)) and barrel.getItemDetail(slot) or inventory.getItems()[slot]
                         if itemData and itemData.name == item then
+                            if string.find(message, "deposit ") and barrel.getItemDetail(slot) then totalSlots = totalSlots + 1 end
                             totalItemCount = totalItemCount + itemData.count
                         end
                     end
-
-                    for _, items in pairs(inventory.getItems()) do
+                    for _, items in pairs(string.find(message, "withdraw ") and inventory.getItems() or barrel.list()) do
                         if items.name == item then
                             ExtraSpace = ExtraSpace + 64 - items.count
                         end
                     end
-
-                    if totalItemCount > inventory.getEmptySpace() * 64 + ExtraSpace then
+                    local emptySpace
+                    if string.find(message, "withdraw ") then emptySpace = inventory.getEmptySpace() * 64 + ExtraSpace
+                    else emptySpace = (barrel.size() - totalSlots) * 64 + ExtraSpace
+                    end
+                    if totalItemCount > emptySpace then
                         chatbox.sendMessageToPlayer(
-                            "The total count of " .. item .. " ("..totalItemCount..") in the specified range exceeds your inventory space (" .. inventory.getEmptySpace()*64+ExtraSpace .. "). Please specify a smaller range.",
+                            "The total count of " .. item .. " ("..totalItemCount..") in the specified range exceeds your inventory space (" .. emptySpace .. "). Please specify a smaller range.",
                             authPlayer, "&bVault", "<>"
                         )
                         goto reset
@@ -144,7 +162,9 @@ while true do
 
                     if #slotsContainingItem > 0 then
                         for _, slot in ipairs(slotsContainingItem) do
-                            inventory.addItemToPlayer("north", {name = item, fromSlot = slot - 1})
+                            if string.find(message, "withdraw ") then inventory.addItemToPlayer("east", {name = item, fromSlot = slot - 1})
+                            else inventory.removeItemFromPlayer("east", {name = item, fromSlot = slot - 1})
+                            end
                         end
                     end
                 end

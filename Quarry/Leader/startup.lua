@@ -19,7 +19,7 @@ repeat
     Clear()
     write("Welcome to Shoddy's Mining Utility!\n\nFunctions:\n1: Start Quarry\n2: Update Children\n3: Feed Children\n4: Remote Control\n\nPick a function! (1/2/3/4):")
     choice = read()
-until choice == "1" or choice == "2" or choice == "3" or choice == "4"
+until choice == "1" or choice == "2" or choice == "3" or choice == "4" or choice == "5"
 Clear()
 
 --Remote Control
@@ -73,18 +73,26 @@ function turtSort()
     term.setCursorPos(1,1)
     print("Sorting Turtles...")
     repeat
+        local sorted = true
     for i = 1, 16, 1 do
-        turtle.select(i)
-        if i == 16 then sorted = true end
         if turtle.getItemCount(i) > 0 then
-            if tonumber(turtle.getItemDetail(i, true)["displayName"]) ~= i then
-                if turtle.getItemCount(tonumber(turtle.getItemDetail(i, true)["displayName"])) then
-                    turtle.transferTo(tonumber(turtle.getItemDetail(i, true)["displayName"]), 1) end
-                for j = 16, 1, -1 do
-                    if j ~= i and turtle.getItemCount(j) == 0 then
-                        turtle.transferTo(j, 1)
-                        break
-    end end end end end
+            local turtNum = tonumber(turtle.getItemDetail(i, true)["displayName"])
+            if turtNum ~= i then
+                sorted = false
+                if turtle.getItemCount(turtNum) ~= 0 then
+                    for j = 16, 1, -1 do                        
+                        if turtle.getItemCount(j) == 0 then 
+                            turtle.select(turtNum) 
+                            turtle.transferTo(j, 1)
+                            turtle.select(i)
+                            turtle.transferTo(turtNum)
+                            break
+                        end
+                    end                    
+                else
+                    turtle.select(i) 
+                    turtle.transferTo(turtNum, 1)
+    end end end end
     until sorted
     print("Done!")
 end
@@ -130,17 +138,14 @@ Clear()
 if choice == "2" then
     print("Are You Sure You Want To Update The Children? (y/n)")
     if read():lower() == "y" then
-        term.clear()
-        term.setCursorPos(1,1)
-        for i = 10, 0, -1 do
+        Clear()
+        for i = 5, 0, -1 do
             print("TURN TURTLE OFF TO STOP UPDATE: ", i)
             sleep(1)
-        end    
+        end
         shell.execute("update", tostring(turtles))
         shell.exit()
-        sleep(1)
-    end
-end
+end end
 --End of Child Update System
 
 --Mining Program Setup
@@ -148,49 +153,43 @@ Swap = false
 if choice == "1" then
     ::orientLoop::
     Clear()
-    write("Make sure the turtle is placed in this orientation:\n" .. ("##########\n"):rep(4) .. Swap == true and "#########^" or "^#########" .. "\n\n^ = Turtle\n# = Blocks To Be Mined\n\nIs it in position? (y/n/swap): ")
+    write("Make sure the turtle is placed in this orientation:\n" .. ("##########\n"):rep(4) .. (Swap == true and "#########^" or "^#########") .. "\n\n^ = Turtle\n# = Blocks To Be Mined\n\nIs it in position? (y/n/swap): ")
     local confirm = read()
     if confirm:lower() == "swap" then 
         Swap = not Swap and true or false
         goto orientLoop
     elseif confirm:lower() ~= "y" then os.reboot() end
 end
-term.setCursorPos(1,1)
+Clear()
 print("Please add 2 Chests to Slot 16 (Bottom Right)")
 repeat sleep(0.2) until turtle.getItemDetail(16) and turtle.getItemDetail(16)["name"] == "minecraft:chest" and turtle.getItemCount(16) == 2
 print("Thank You!")
 sleep(1)
 function dimensions()
     Clear()
-    print("How far would you like each turtle to mine? (Blocks)")
+    write("How far would you like each turtle to mine? (Blocks): ")
     len = read()
-    print("\nHow high would you like each turtle to mine? (Blocks)")
+    write("\nHow high would you like each turtle to mine? (Blocks): ")
     height = read()
-    print("\nThanks!")
-    Clear()
     stacks = math.ceil(len*height*turtles*3/64)
-    if stacks>45 then 
-        print("WARNING: Estimated block count is greater than ".. tostring(stacks > 54 and "all" or "5/6") .." storage! (".. tostring(stacks < 10000 and stacks or ">999") .." Stacks)\n\n".. tostring(stacks > 54 and "The chest cannot store the estimated number of items and will overflow and items will be dropped on the ground!" or "If you are in an area with a high variety of blocks, some blocks/items may not fit in the chest!").."\n\nDimensions:\nLength: "..len.."\nHeight: "..height.."\nDepth: "..turtles*3 .." (3 Blocks Per Turtle)\n")
-        write("Continue with these settings? (y/n): ")
+    if stacks > 45 then 
+        write("WARNING: Estimated block count is greater than ".. tostring(stacks > 54 and "all" or "5/6") .." storage! (".. tostring(stacks < 10000 and stacks or ">999") .." Stacks)\n\n".. tostring(stacks > 54 and "The chest cannot store the estimated number of items and will overflow and items will be dropped on the ground!" or "If you are in an area with a high variety of blocks, some blocks/items may not fit in the chest!").."\n\nDimensions:\nLength: "..len.."\nHeight: "..height.."\nDepth: "..turtles*3 .." (3 Blocks Per Turtle)\nContinue with these settings? (y/n): ")
         if read():lower() ~= "y" then dimensions() end
-    end
-end 
+end end 
 dimensions()
-sleep(1)
 Clear()
 print("Starting Mining Program...\n")
-sleep(1)
+sleep(0.5)
 print("Please stand back! Starting In...")
-sleep(1)
 for i = 3, 1, -1 do
+    sleep(0.5)
     print(i)
-    sleep(1)
 end
 local function breakFalling()
     repeat
         turtle.dig()
         sleep(0.5)
-    until not turtle.inspect() 
+    until not turtle.inspect()
 end
 --End of Mining Program Setup
 
@@ -199,77 +198,55 @@ Clear()
 --Mining Program
 rednet.open('left')
 turtle.digUp()
-for i = 1, turtles, 1 do
+local function digdig()
     breakFalling()
     turtle.forward()
     turtle.digUp()
-    if i == 1 then
-        if swap then turtle.turnRight() else turtle.turnLeft() end
-        turtle.dig()
-        turtle.forward()
-        turtle.digUp()
-        turtle.back()
-        turtle.select(16)
-        turtle.place()
-        if swap then turtle.turnLeft() else turtle.turnRight() end
-        turtle.dig()
-        turtle.forward()
-        turtle.digUp()
-        if swap then turtle.turnRight() else turtle.turnLeft() end
-        turtle.dig()
-        turtle.forward()
-        turtle.digUp()
-        turtle.back()
-        turtle.place()
-        if swap then turtle.turnLeft() else turtle.turnRight() end
-        turtle.back()
-    end
-    if swap then turtle.turnLeft() else turtle.turnRight() end
+end
+local function swapTurn(direction)
+    if direction == "right" then if Swap then turtle.turnRight() else turtle.turnLeft() end
+    elseif direction == "left" then if Swap then turtle.turnLeft() else turtle.turnRight() end end
+end
+local function place()
+    swapTurn("right")
+    digdig()
+    turtle.back()
+    turtle.place()
+    swapTurn("left")
+end
+digdig()
+turtle.select(16)
+place()
+turtle.back()
+place()
+for i = 1, turtles, 1 do
+    digdig()
+    swapTurn("left")
     breakFalling()
     turtle.select(i)
     turtle.place()
-    if swap then turtle.turnRight() else turtle.turnLeft() end
+    swapTurn("right")
     child = swap and peripheral.wrap("left") or peripheral.wrap("right")
     child.turnOn()
     rednet.receive()
     rednet.send(child.getID(), swap and "Swap!" or "false", len.."|"..height)
-    if i ~= turtles then
-        for i = 1, 2, 1 do
-            breakFalling()
-            turtle.forward()
-            turtle.digUp()
-        end
-    else
-        turtle.dig()
-        turtle.forward()
-        turtle.digUp()
-        turtle.up()
-        turtle.back()
-        turtle.back()
-        for i = 0, turtles, 1 do
-            turtle.back()
-            turtle.back()
-            turtle.back()
-        end
-        turtle.down()
-    end
+    for i = 1, (i == turtles and 1 or 2), 1 do digdig() end
 end
-if swap then turtle.turnRight() else turtle.turnLeft() end
-turtle.dig()
-turtle.forward()
-turtle.digUp()
-if swap then turtle.turnLeft() else turtle.turnRight() end
+for i = 0, turtles*3, 1 do turtle.back() end
+swapTurn("right")
+digdig()
+swapTurn("left")
 for i = 1, 16, 1 do
     turtle.select(i)
     turtle.drop()
 end
-if swap then turtle.turnLeft() else turtle.turnRight() end
+swapTurn("left")
 turtle.forward()
-if swap then turtle.turnRight() else turtle.turnLeft() end
+swapTurn("right")
 turtle.select(1)
 for i = turtles, 1, -1 do
     rednet.receive()
     turtle.dig()
 end
-if swap then turtle.turnLeft() else turtle.turnRight() end
+swapTurn("left")
 turtle.back()
