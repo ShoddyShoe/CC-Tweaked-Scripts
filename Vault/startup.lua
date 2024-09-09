@@ -1,5 +1,5 @@
-authPlayerUUID = "1540f590-f9cc-4966-b590-f327f7377957"
-authPlayer = "ShoddyShoe51945"
+authPlayerUUID = "e75c656e-9d81-4ddb-b5ff-e26574f49070"
+authPlayer = "ShoddyShoe"
 
 chatbox = peripheral.find("chatBox")
 inventory = peripheral.find("inventoryManager")
