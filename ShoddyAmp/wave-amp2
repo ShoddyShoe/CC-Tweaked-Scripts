@@ -661,7 +661,7 @@ local function addFiles(path)
 		end
 	end
 end
-local trackNames
+local songDir
 local function init(args)
 	local volumes = { }
 	local filters = { }
@@ -709,6 +709,7 @@ local function init(args)
 				trackMode = 4
 			else
 				local path = shell.resolve(args[i])
+				songDir = path
 				if fs.isDir(path) then
 					addFiles(path)
 				elseif fs.exists(path) then
@@ -782,7 +783,6 @@ local function init(args)
 		end
 		i = i + 1
 	end
-
 	if #files == 0 then
 		addFiles("")
 	end
@@ -793,18 +793,18 @@ local function init(args)
 	while i <= #files do
 		local track
 		pcall(function () track = wave.loadTrack(files[i]) end)
-  term.scroll(1)
-  term.setCursorPos(1, termSizeY)
-  progress = math.floor(i/#files*100)
-  term.write(progress.."%"..string.rep(" ", 3-#tostring(progress)).."|")
-  term.write(string.rep("\136", math.floor(progress/100*termSizeX-5)))
-  term.write(string.rep("\127", termSizeX-math.floor(progress/100*termSizeX-5)))
-  term.setCursorPos(1, termSizeY-1)
-  term.clearLine()
-  if not track then
+		term.scroll(1)
+		term.setCursorPos(1, termSizeY)
+		progress = math.floor(i/#files*100)
+		term.write(progress.."%"..string.rep(" ", 3-#tostring(progress)).."|")
+		term.write(string.rep("\136", math.floor(progress/100*termSizeX-5)))
+		term.write(string.rep("\127", termSizeX-math.floor(progress/100*termSizeX-5)))
+		term.setCursorPos(1, termSizeY-1)
+		term.clearLine()
+		if not track then
 			term.write("failed to load "..files[i])
 			os.sleep(5)
-   fs.delete(files[i])
+   			fs.delete(files[i])
 			table.remove(files, i)
 		else
 			tracks[i] = track
@@ -857,23 +857,51 @@ local function formatTime(secs)
 	return string.format("%01d:%02d", mins, secs)
 end
 
+folders = {}
+for _, file in ipairs(fs.list("/")) do
+	local filePath = fs.combine("/", file)
+	if fs.isDir(filePath) then
+		for _, file in ipairs(fs.list(filePath)) do
+			if string.sub(file, -4) == ".nbs" then
+				table.insert(folders, (string.lower(filePath) == "main" and 1 or -1) ,filePath)
+				break
+			end
+		end
+	end
+end
 local function drawStatic()
 	if noUI then return end
 	term.setCursorPos(1, 1)
 	term.setBackgroundColor(theme.topBar)
 	term.setTextColor(theme.topBarTitle)
 	term.write("ShoddyAmp2 \15")
-	term.write((" "):rep(screenWidth - 29))
-	term.setTextColor(trackMode == 1 and theme.topBarOptionSelected or theme.topBarOption)
-	term.write("nrm ")
-	term.setTextColor(trackMode == 2 and theme.topBarOptionSelected or theme.topBarOption)
-	term.write("stp ")
-	term.setTextColor(trackMode == 3 and theme.topBarOptionSelected or theme.topBarOption)
-	term.write("rep ")
-	term.setTextColor(trackMode == 4 and theme.topBarOptionSelected or theme.topBarOption)
-	term.write("shf ")
-	term.setTextColor(theme.topBarClose)
-	term.write("X")
+	term.setTextColor(theme.topBarOption)
+	term.write(" | ")
+	term.setTextColor(theme.topBarOptionSelected)
+	term.write("Folder: ")
+	for _, folder in pairs(folders) do
+		term.setTextColor(folder == songDir and theme.topBarOptionSelected or theme.topBarOption)
+		term.write(folder.." ")
+	end
+	term.blit("|", colors.toBlit(theme.topBarOption), "f")
+	term.setCursorPos(screenWidth - 60, 1)
+	term.blit("|", colors.toBlit(theme.topBarOption), "f")
+	term.setTextColor(theme.topBarOptionSelected)
+	term.write(" Vol: "..context.volume*50 .."%"..string.rep(" ",3 - #(tostring(context.volume*50))))
+	term.setTextColor(theme.topBarOption)
+	term.write(" "..string.rep("\140", (0 + math.floor(context.volume * 10))))
+	term.setBackgroundColor(theme.topBarOptionSelected)
+	term.write(" ")
+	term.setBackgroundColor(colors.black)
+	term.write(string.rep("\140", (20 - math.floor(context.volume * 10))).." | ")
+	term.setTextColor(theme.topBarOptionSelected)
+	term.write("Mode: ")
+	for _, i in pairs({"nrm ", "stp ", "rep ", "shf "}) do
+		term.setTextColor(trackMode == _ and theme.topBarOptionSelected or theme.topBarOption)
+		term.write(i)
+	end
+	term.blit("| ", (colors.toBlit(theme.topBarOption)):rep(2), "ff")
+	term.blit("X", colors.toBlit(theme.topBarClose), "f")
 
 	local scrollnub = math.floor(trackScroll / (#tracks - screenHeight + 7) * (screenHeight - 10) + 0.5)
 
@@ -947,7 +975,7 @@ local function drawDynamic()
    term.write(_HOST and "\127" or "#")
   end
   for j = easing, screenHeight-2 do
-	  term.setCursorPos(screenWidth - 20 + i, screenHeight - j)
+	  term.setCursorPos(screenWidth - 20 + i, (screenHeight-1 - j > 1) and screenHeight-1 - j or 2)
 	  term.setBackgroundColor(theme.visualiserBackground)
 	  term.setTextColor(theme.visualiserBar)
 	  term.write(" ")
@@ -975,7 +1003,7 @@ local function drawDynamic()
 	term.setTextColor(theme.progressTime)
 	term.write(formatTime(track.length / track.tempo).." ")
 	term.setTextColor(theme.progressButton)
-	term.write(instance.playing and (_HOST and "|\016" or "|>") or "||")
+	term.write(instance.playing and (_HOST and " \016" or " >") or "||")
 end
 
 local function playSong(index)
@@ -1019,16 +1047,36 @@ local function handleClick(x, y)
 	if y == 1 then
 		if x == screenWidth then
 			running = false
-		elseif x >= screenWidth - 16 and x <= screenWidth - 2 and (x - screenWidth + 1) % 4 ~= 0 then
-			trackMode = math.floor((x - screenWidth + 16) / 4) + 1
+		elseif x >= screenWidth - 18 and x <= screenWidth - 4 and (x - screenWidth + 1) % 4 ~= 0 then
+			if x >= screenWidth - 18 and x <= screenWidth - 16 then
+				trackMode = 1
+			elseif x >= screenWidth - 14 and x <= screenWidth - 12 then
+				trackMode = 2
+			elseif x >= screenWidth - 10 and x <= screenWidth - 8 then
+				trackMode = 3
+			elseif x >= screenWidth - 6 and x <= screenWidth - 4 then
+				trackMode = 4
+			end
 			instance.loop = trackMode == 3
 			drawStatic()
+		elseif x >= screenWidth - 48 and x <= screenWidth - 28 then
+			context.volume = math.abs((screenWidth - x - 48) / 10)
+			drawStatic()
+		elseif x >= 23 then
+			local len = 23
+			for _, folder in pairs(folders) do
+				len = len + #folder + 1
+				if x >= len - #folder and x <= len - 1 then
+					shell.run("monitor", "front wave-amp2 " .. folder .. " -t darktheme")
+					shell.exit()
+				end
+			end
 		end
 	elseif x < screenWidth and y >= 2 and y <= screenHeight - 1 then
 		playSong(y - 1 + trackScroll)
 	elseif x == screenWidth and y == 2 then
 		setScroll(trackScroll - 2)
-	elseif x == screenWidth and y == screenHeight - 6 then
+	elseif x == screenWidth and y == screenHeight - 7 then
 		setScroll(trackScroll + 2)
 	elseif x == screenWidth and y >= 3 and y <= screenHeight - 7 then
 		setScroll(math.floor((y - 3) / (screenHeight - 11) * (#tracks - screenHeight + 2 ) + 0.5))
@@ -1043,7 +1091,7 @@ end
 
 local function handleScroll(x, y, scroll)
 	if noUI then return end
-	if y >= 2 and y <= screenHeight - 3 then
+	if y >= 2 and y <= screenHeight - 7 then
 		setScroll(trackScroll + scroll * 2)
 	end
 end
@@ -1086,8 +1134,10 @@ local function handleKey(key)
 end
 
 local function run()
- peripheral.find("redstoneIntegrator").setOutput("top", true)
- sleep(4)
+ if os.getComputerLabel() ~= "debug" then 
+	peripheral.find("redstoneIntegrator").setOutput("top", true)
+ 	sleep(4)
+ end
  playSong(1)
 	drawStatic()
 	drawDynamic()
@@ -1126,7 +1176,7 @@ local function exit()
 	term.setTextColor(colors.white)
 	term.setCursorPos(1, 1)
 	term.clear()
- peripheral.find("redstoneIntegrator").setOutput("top", false)
+ 	if os.getComputerLabel() ~= "debug" then peripheral.find("redstoneIntegrator").setOutput("top",false) end
 end
 
 init({...})
