@@ -43,11 +43,19 @@ for i = 1, dist, 1 do
     turtle.turnLeft()
     turtle.turnLeft()
     if turtle.detect() then breakFalling() end
+    if turtle.getItemCount(13) ~= 0 then
+        for i = 1, 16, 1 do
+            if turtle.getItemDetail(i)["name"] == "minecraft:netherrack" then
+                turtle.select(i)
+                turtle.drop()
+            end
+        end
+    end
     if i ~= tonumber(dist) then
         turtle.turnRight()
         turtle.dig()
         sleep(0.5)
-        if turtle.inspect() then breakFalling() end
+        if turtle.detect() then breakFalling() end
         turtle.forward()
     end
 end
