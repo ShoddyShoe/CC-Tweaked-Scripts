@@ -45,7 +45,7 @@ for i = 1, dist, 1 do
     if turtle.detect() then breakFalling() end
     if turtle.getItemCount(13) ~= 0 then
         for i = 1, 16, 1 do
-            if turtle.getItemDetail(i)["name"] == "minecraft:netherrack" then
+            if turtle.getItemCount(i) > 0 and turtle.getItemDetail(i)["name"] == "minecraft:netherrack" then
                 turtle.select(i)
                 turtle.drop()
             end
