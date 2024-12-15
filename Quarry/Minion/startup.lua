@@ -1,4 +1,8 @@
 rednet.open('left')
+if peripheral.wrap('front') then
+    turtle.turnLeft()
+    turtle.turnLeft()
+end
 leader = peripheral.wrap('back')
 leaderID = leader.getID()
 local message, command
@@ -12,7 +16,7 @@ elseif command == "Fuel!" then
 elseif command == "Swap!" then Swap = true end
 
 local function breakFalling()
-    while not turtle.detect() do
+    while turtle.detect() do
         turtle.dig()
         sleep(0.5)
     end
