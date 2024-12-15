@@ -788,8 +788,20 @@ local function init(args)
 	end
 
 	i = 1
+	for i = 1, 3 do
+		table.sort(files, function(a, b)
+			local a_char = a:match("%- (.)")
+			local b_char = b:match("%- (.)")
+			if a_char and b_char then
+				return a_char < b_char
+			else
+				return false
+			end
+		end)
+	end
+
 	print("loading tracks...")
- termSizeX, termSizeY = term.getSize()
+ 	termSizeX, termSizeY = term.getSize()
 	while i <= #files do
 		local track
 		pcall(function () track = wave.loadTrack(files[i]) end)
@@ -841,14 +853,14 @@ local function init(args)
 	if #filters ~= #outputs then
 		error("invalid amount of filter values: "..#filters.." (must be 1 or "..#outputs..")")
 	end
-
 	for i = 1, #outputs do
 		outputs[i].volume = volumes[i]
 		outputs[i].filter = filters[i]
 	end
-
 	context = wave.createContext()
 	context:addOutputs(outputs)
+	term.clear()
+	term.setCursorPos(1,1)
 end
 
 local function formatTime(secs)
@@ -884,7 +896,12 @@ local function drawStatic()
 		term.write(folder.." ")
 	end
 	term.blit("|", colors.toBlit(theme.topBarOption), "f")
-	term.setCursorPos(screenWidth - 60, 1)
+	term.setCursorPos(screenWidth - 81, 1)
+	term.blit("|", colors.toBlit(theme.topBarOption), "f")
+	term.setTextColor(theme.topBarOptionSelected)
+	term.write(" Sort: ")
+	term.blit("Title ", (colors.toBlit(altSort and theme.topBarOption or theme.topBarOptionSelected)):rep(6), "ffffff")
+	term.blit("Author ", (colors.toBlit(not altSort and theme.topBarOption or theme.topBarOptionSelected)):rep(7), "fffffff")
 	term.blit("|", colors.toBlit(theme.topBarOption), "f")
 	term.setTextColor(theme.topBarOptionSelected)
 	term.write(" Vol: "..context.volume*50 .."%"..string.rep(" ",3 - #(tostring(context.volume*50))))
@@ -924,7 +941,7 @@ local function drawStatic()
 	if tracks[index] then
 		local track = tracks[index]
 		local name = fs.getName(files[index])
-		local trackAuthor, trackName = string.match(name, "^(.-)%s*-"), string.match(name, "-%s*(.-)$") or name, (string.match(name, "-%s*(.-)$") or "???")
+		local trackAuthor, trackName = string.match(name, "^(.-)%s*-"), string.match(name, "-%s*(.-)$") or name
 		str = formatTime(track.length / track.tempo)..string.rep(" ", 6-#formatTime(track.length / track.tempo)).."| "..trackAuthor..string.rep(" ", maxTrackAuthor-#trackAuthor).." | "..string.match(trackName, "^(.-)%s*.nbs")
 	end
 	if #str > screenWidth - 1 then
@@ -1061,6 +1078,30 @@ local function handleClick(x, y)
 			drawStatic()
 		elseif x >= screenWidth - 48 and x <= screenWidth - 28 then
 			context.volume = math.abs((screenWidth - x - 48) / 10)
+			drawStatic()
+		elseif altSort and x >= screenWidth - 73 and x <= screenWidth - 69 then
+			for i = 1, #files - 1 do
+				for j = 1, #files - i do
+					local char1 = files[j]:match("%- (.)")
+					local char2 = files[j + 1]:match("%- (.)")
+					if char1 > char2 then
+						files[j], files[j + 1] = files[j + 1], files[j]
+						tracks[j], tracks[j + 1] = tracks[j + 1], tracks[j]
+					end
+				end
+			end
+			altSort = false
+			drawStatic()
+		elseif not altSort and x >= screenWidth - 67 and x <= screenWidth - 62 then
+			for i = 1, #files - 1 do
+				for j = 1, #files - i do
+					if files[j] > files[j + 1] then
+						files[j], files[j + 1] = files[j + 1], files[j]
+						tracks[j], tracks[j + 1] = tracks[j + 1], tracks[j]
+					end
+				end
+			end
+			altSort = true
 			drawStatic()
 		elseif x >= 23 then
 			local len = 23
