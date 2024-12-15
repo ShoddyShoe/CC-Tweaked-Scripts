@@ -50,31 +50,30 @@ def rename_files_and_save_lyrics(folder_path):
             song_name = filename[:-4]
             if '-' in song_name:
                 print(f"Skipping file (already has a hyphen): {filename}")
-                continue
+                artist = get_song_author(song_name)
+                if artist:
+                    artist = artist.replace('/', '\\')
 
-            artist = get_song_author(song_name)
-            if artist:
-                artist = artist.replace('/', '\\')
+                    new_filename = f"{artist}  -  {song_name}.nbs"
+                    old_file_path = os.path.join(folder_path, filename)
+                    new_file_path = os.path.join(folder_path, new_filename)
 
-                new_filename = f"{artist}  -  {song_name}.nbs"
-                old_file_path = os.path.join(folder_path, filename)
-                new_file_path = os.path.join(folder_path, new_filename)
-
-                os.rename(old_file_path, new_file_path)
-                print(f"Renamed: {filename} -> {new_filename}")
-
-                # Get lyrics and save them to a .txt file
-                lyrics = get_song_lyrics(song_name, artist)
-                if lyrics:
-                    txt_filename = new_filename.replace('.nbs', '.txt')
-                    txt_file_path = os.path.join(folder_path, txt_filename)
-                    with open(txt_file_path, 'w', encoding='utf-8') as txt_file:
-                        txt_file.write(lyrics)
-                    print(f"Lyrics saved to: {txt_filename}")
+                    os.rename(old_file_path, new_file_path)
+                    print(f"Renamed: {filename} -> {new_filename}")
                 else:
-                    print(f"No lyrics found for: {song_name}")
+                    print(f"Artist not found for: {song_name}")
+
+            # Get lyrics and save them to a .txt file
+            lyrics = get_song_lyrics(song_name, artist)
+            if lyrics:
+                txt_filename = new_filename.replace('.nbs', '.txt')
+                txt_file_path = os.path.join(folder_path, txt_filename)
+                with open(txt_file_path, 'w', encoding='utf-8') as txt_file:
+                    txt_file.write(lyrics)
+                print(f"Lyrics saved to: {txt_filename}")
             else:
-                print(f"Artist not found for: {song_name}")
+                print(f"No lyrics found for: {song_name}")
+
 
 # Call the function
 rename_files_and_save_lyrics(folder_path)

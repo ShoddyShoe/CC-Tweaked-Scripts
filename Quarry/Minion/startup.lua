@@ -12,10 +12,10 @@ elseif command == "Fuel!" then
 elseif command == "Swap!" then Swap = true end
 
 local function breakFalling()
-    repeat
+    while not turtle.detect() do
         turtle.dig()
         sleep(0.5)
-    until not turtle.inspect()
+    end
 end
 dist = message:sub(1,string.find(message,"|")-1)
 height = message:sub(string.find(message,"|")+1)
@@ -38,7 +38,7 @@ for i = 1, dist, 1 do
     breakFalling()
     turtle.turnLeft()
     turtle.turnLeft()
-    if turtle.inspect() then breakFalling() end
+    if turtle.detect() then breakFalling() end
     if i ~= tonumber(dist) then
         turtle.turnRight()
         turtle.dig()
